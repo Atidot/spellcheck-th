@@ -4,7 +4,7 @@ let
 
   inherit (nixpkgs) pkgs;
 
-  f = { mkDerivation, aspell, base, process, stdenv
+  f = { mkDerivation, aspell, base, process, stdenv, aspellDicts
       , template-haskell, text
       }:
       mkDerivation {
@@ -13,10 +13,10 @@ let
         src = ../spellcheck-th;
         isLibrary = true;
         isExecutable = true;
-        libraryHaskellDepends = [ base process template-haskell text aspell];
-        libraryToolDepends = [ aspell ];
-        executableHaskellDepends = [ base process template-haskell text aspell];
-        testHaskellDepends = [ base process template-haskell text aspell];
+        libraryHaskellDepends = [ base process template-haskell text aspell aspellDicts.en];
+        libraryToolDepends = [ aspell aspellDicts.en];
+        executableHaskellDepends = [ base process template-haskell text aspell aspellDicts.en];
+        testHaskellDepends = [ base process template-haskell text aspell aspellDicts.en];
         homepage = "https://github.com/githubuser/spellcheck-th#readme";
         license = stdenv.lib.licenses.bsd3;
       };
