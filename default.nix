@@ -20,6 +20,7 @@ stdenv.mkDerivation rec {
 
   buildInputs = [
     haskellEnv
+    (aspellWithDicts (d: [d.en]))
   ];
 
   shellHook =  ''
