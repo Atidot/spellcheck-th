@@ -1,34 +1,30 @@
-{ nixpkgs ? import <nixpkgs> {}, compiler ? "default", doBenchmark ? false }:
-
+{ nixpkgs  ? import <nixpkgs> { config.allowBroken = true; config.allowUnfree = true; }
+, compiler ? "ghc844"
+}:
+with nixpkgs;
 let
+  haskellPackages = import ./haskell.nix { inherit nixpkgs compiler; };
 
-  inherit (nixpkgs) pkgs;
-
-  f = { mkDerivation, aspell, base, process, stdenv, aspellDicts
-      , template-haskell, text
-      }:
-      mkDerivation {
-        pname = "spellcheck-th";
-        version = "0.1.0.0";
-        src = ../spellcheck-th;
-        isLibrary = true;
-        isExecutable = true;
-        libraryHaskellDepends = [ base process template-haskell text aspell aspellDicts.en];
-        libraryToolDepends = [ aspell aspellDicts.en];
-        executableHaskellDepends = [ base process template-haskell text aspell aspellDicts.en];
-        testHaskellDepends = [ base process template-haskell text aspell aspellDicts.en];
-        homepage = "https://github.com/githubuser/spellcheck-th#readme";
-        license = stdenv.lib.licenses.bsd3;
-      };
-
-  haskellPackages = if compiler == "default"
-                       then pkgs.haskellPackages
-                       else pkgs.haskell.packages.${compiler};
-
-  variant = if doBenchmark then pkgs.haskell.lib.doBenchmark else pkgs.lib.id;
-
-  drv = variant (haskellPackages.callPackage f {});
+  haskellEnv = haskellPackages.ghcWithPackages (ps: with ps; [
+    spellcheck-th
+  ]);
 
 in
+stdenv.mkDerivation rec {
+  name = "spellcheck-th";
 
-  if pkgs.lib.inNixShell then drv.env else drv
+  env = buildEnv { name = name; paths = buildInputs; };
+  builder = builtins.toFile "builder.sh" ''
+    source $stdenv/setup; ln -s $env $out
+  '';
+
+  buildInputs = [
+    haskellEnv
+  ];
+
+  shellHook =  ''
+                export LOCALE_ARCHIVE_2_27="${glibcLocales}/lib/locale/locale-archive"
+                eval $(cat `which ghc` | grep "lib/ghc")
+              '';
+
+}
