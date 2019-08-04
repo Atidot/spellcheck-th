@@ -3,7 +3,18 @@
 }:
 with nixpkgs;
 let
-  haskellPackages = import ./haskell.nix { inherit nixpkgs compiler; };
+  spellcheckSrc = ../spellcheck-th;
+
+  projectPackages = hspkgs: {
+    spellcheck-th     = hspkgs.callCabal2nix "spellcheck-th" "${spellcheckSrc}" {};
+  };
+
+  haskellPackages = nixpkgs.haskell.packages.${compiler}.override (old: {
+    overrides = pkgs.lib.composeExtensions old.overrides
+      (self: hspkgs:
+        projectPackages hspkgs
+      );
+    });
 
   haskellEnv = haskellPackages.ghcWithPackages (ps: with ps; [
     spellcheck-th
