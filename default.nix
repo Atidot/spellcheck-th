@@ -22,8 +22,9 @@ let
 
 in
 stdenv.mkDerivation rec {
-  name = "spellcheck-th";
-
+  name = "${pname}-${version}";
+  pname = "spellcheck-th";
+  version = "0.1.0";
   env = buildEnv { name = name; paths = buildInputs; };
   builder = builtins.toFile "builder.sh" ''
     source $stdenv/setup; ln -s $env $out
